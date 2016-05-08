@@ -151,6 +151,14 @@ var strankaIzRacuna = function(racunId, callback) {
     })
 }
 
+var strankaIzStranke = function(strankaId, callback) {
+    pb.all("SELECT Customer.* FROM Customer, Invoice \
+            WHERE Customer.CustomerId = Invoice.CustomerId AND Customer.CustomerId = " + strankaId,
+    function(napaka, vrstice) {
+      callback([vrstice[0]]);
+    })
+}
+
 // Izpis računa v HTML predstavitvi na podlagi podatkov iz baze
 streznik.post('/izpisiRacunBaza', function(zahteva, odgovor) {
   odgovor.end();
@@ -240,7 +248,8 @@ streznik.post('/stranka', function(zahteva, odgovor) {
   form.parse(zahteva, function (napaka1, polja, datoteke) {
     var idStranka = polja['seznamStrank'];
     
-    strankaIzRacuna(idStranka, function(podatkiStranke){
+    strankaIzStranke(idStranka, function(podatkiStranke){
+      console.log(podatkiStranke[0].FirstName);
       zahteva.session.stranka = podatkiStranke;
       odgovor.redirect('/')
     });
