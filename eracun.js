@@ -138,7 +138,14 @@ var pesmiIzRacuna = function(racunId, callback) {
     Track.TrackId IN (SELECT InvoiceLine.TrackId FROM InvoiceLine, Invoice \
     WHERE InvoiceLine.InvoiceId = Invoice.InvoiceId AND Invoice.InvoiceId = " + racunId + ")",
     function(napaka, vrstice) {
-      console.log(vrstice);
+      if (napaka) {
+        callback(false);
+      } else {
+        for (var i=0; i<vrstice.length; i++) {
+          vrstice[i].stopnja = davcnaStopnja((vrstice[i].opisArtikla.split(' (')[1]).split(')')[0], vrstice[i].zanr);
+        }
+        callback(vrstice);
+      }
     })
 }
 
@@ -147,14 +154,32 @@ var strankaIzRacuna = function(racunId, callback) {
     pb.all("SELECT Customer.* FROM Customer, Invoice \
             WHERE Customer.CustomerId = Invoice.CustomerId AND Invoice.InvoiceId = " + racunId,
     function(napaka, vrstice) {
-      callback(vrstice);
+      if (napaka) {
+        callback(false);
+      } else {
+        callback(vrstice); 
+      }
     })
 }
 
 // Izpis računa v HTML predstavitvi na podlagi podatkov iz baze
 streznik.post('/izpisiRacunBaza', function(zahteva, odgovor) {
-  odgovor.end();
-})
+  var form = new formidable.IncomingForm();
+  form.parse(zahteva, function (napaka1, polja, datoteke) {
+    var idStranka = polja['seznamRacunov'];
+    strankaIzRacuna(idStranka, function(podatkiStranke){
+      pesmiIzRacuna(idStranka, function(pesmiStranke){
+        console.log(podatkiStranke);
+        odgovor.setHeader('content-type', 'text/xml');
+        odgovor.render('eslog', {
+          vizualiziraj: true,
+          stranka: podatkiStranke,
+          postavkeRacuna: pesmiStranke
+        });
+      });
+    });
+  });
+});
 
 // Izpis računa v HTML predstavitvi ali izvorni XML obliki
 streznik.get('/izpisiRacun/:oblika', function(zahteva, odgovor) {
@@ -168,7 +193,18 @@ streznik.get('/izpisiRacun/:oblika', function(zahteva, odgovor) {
       odgovor.setHeader('content-type', 'text/xml');
       odgovor.render('eslog', {
         vizualiziraj: zahteva.params.oblika == 'html' ? true : false,
-        postavkeRacuna: pesmi
+        postavkeRacuna: pesmi,
+        stranka: [{"FirstName": "Univerza v Ljubljani, ",
+                  "LastName": "Fakulteta za računalništvo in informatiko",
+                  "Company": " Laboratorij za podatkovne tehnologije",
+                  "Address": "Večna pot 113, nadstropje 2, kabinet R2.49",
+                  "City": "Ljubljana",
+                  "Country": "Slovenija",
+                  "PostalCode": "1000",
+                  "Email": "lorem@ipsum.com",
+                  "Phone": "38614798000",
+                  "Fax": "38612419350"
+        }]
       })  
     }
   })
