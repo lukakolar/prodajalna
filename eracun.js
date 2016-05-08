@@ -47,7 +47,7 @@ function davcnaStopnja(izvajalec, zanr) {
 
 // Prikaz seznama pesmi na strani
 streznik.get('/', function(zahteva, odgovor) {
-  if (zahteva.session.prijavaUspesna) {
+  if (zahteva.session.stranka) {
     pb.all("SELECT Track.TrackId AS id, Track.Name AS pesem, \
             Artist.Name AS izvajalec, Track.UnitPrice * " +
             razmerje_usd_eur + " AS cena, \
@@ -147,7 +147,7 @@ var strankaIzRacuna = function(racunId, callback) {
     pb.all("SELECT Customer.* FROM Customer, Invoice \
             WHERE Customer.CustomerId = Invoice.CustomerId AND Invoice.InvoiceId = " + racunId,
     function(napaka, vrstice) {
-      console.log(vrstice);
+      callback(vrstice);
     })
 }
 
@@ -238,16 +238,20 @@ streznik.post('/stranka', function(zahteva, odgovor) {
   var form = new formidable.IncomingForm();
   
   form.parse(zahteva, function (napaka1, polja, datoteke) {
-    if(polja['seznamStrank']) {
-      zahteva.session.prijavaUspesna = true;
-    }
-    odgovor.redirect('/')
+    var idStranka = polja['seznamStrank'];
+    
+    strankaIzRacuna(idStranka, function(podatkiStranke){
+      zahteva.session.stranka = podatkiStranke;
+      odgovor.redirect('/')
+    });
+    
   });
 })
 
 // Odjava stranke
 streznik.post('/odjava', function(zahteva, odgovor) {
-    zahteva.session.prijavaUspesna = false;
+    zahteva.session.kosarica = null;
+    zahteva.session.stranka = null;
     odgovor.redirect('/prijava') 
 })
 
