@@ -198,21 +198,12 @@ streznik.get('/izpisiRacun/:oblika', function(zahteva, odgovor) {
       odgovor.send("<p>V košarici nimate nobene pesmi, \
         zato računa ni mogoče pripraviti!</p>");
     } else {
+      console.log(zahteva.session.stranka);
       odgovor.setHeader('content-type', 'text/xml');
       odgovor.render('eslog', {
         vizualiziraj: zahteva.params.oblika == 'html' ? true : false,
         postavkeRacuna: pesmi,
-        stranka: [{"FirstName": "Univerza v Ljubljani, ",
-                  "LastName": "Fakulteta za računalništvo in informatiko",
-                  "Company": " Laboratorij za podatkovne tehnologije",
-                  "Address": "Večna pot 113, nadstropje 2, kabinet R2.49",
-                  "City": "Ljubljana",
-                  "Country": "Slovenija",
-                  "PostalCode": "1000",
-                  "Email": "lorem@ipsum.com",
-                  "Phone": "38614798000",
-                  "Fax": "38612419350"
-        }]
+        stranka: zahteva.session.stranka
       })  
     }
   })
