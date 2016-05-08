@@ -164,7 +164,7 @@ var strankaIzRacuna = function(racunId, callback) {
 
 var strankaIzStranke = function(strankaId, callback) {
     pb.all("SELECT Customer.* FROM Customer, Invoice \
-            WHERE Customer.CustomerId = Invoice.CustomerId AND Customer.CustomerId = " + strankaId,
+            WHERE Customer.CustomerId = " + strankaId,
     function(napaka, vrstice) {
       callback([vrstice[0]]);
     })
@@ -290,7 +290,7 @@ streznik.post('/stranka', function(zahteva, odgovor) {
   
   form.parse(zahteva, function (napaka1, polja, datoteke) {
     var idStranka = polja['seznamStrank'];
-    
+    console.log(idStranka);
     strankaIzStranke(idStranka, function(podatkiStranke){
       console.log(podatkiStranke[0].FirstName);
       zahteva.session.stranka = podatkiStranke;
